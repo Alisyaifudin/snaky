@@ -1,6 +1,6 @@
-import { extend, useTick } from "@pixi/react";
+import { extend } from "@pixi/react";
 import { Container, Graphics } from "pixi.js";
-import { COLORS, SCREEN_SIZE } from "./constants";
+import { SCREEN_SIZE } from "./constants";
 import { useEffect, useRef } from "react";
 
 extend({
@@ -15,30 +15,23 @@ interface Props {
 }
 
 export function Screen({ children }: Props) {
-	const ref = useRef<Graphics>(null);
-	const width = Math.min(SCREEN_SIZE, window.innerWidth);
-	const ratio = width / SCREEN_SIZE;
+	const root = useRef(document.getElementById("root")!);
+	const ref = useRef<Container>(null);
+	const scale = root.current.clientWidth / SCREEN_SIZE;
 	useEffect(() => {
 		function resize() {
-			const width = Math.min(SCREEN_SIZE, window.innerWidth);
-			const ratio = width / SCREEN_SIZE;
-			ref.current!.scale = ratio;
+			const scale = root.current.clientWidth / SCREEN_SIZE;
+			ref.current!.scale = scale;
 		}
 		window.addEventListener("resize", resize);
+		return () => {
+			window.removeEventListener("resize", resize);
+		};
 	}, []);
+	console.log(scale);
 	return (
-		<pixiGraphics
-			width={SCREEN_SIZE}
-			height={SCREEN_SIZE}
-			ref={ref}
-			// draw={(g) => {
-			// 	if (ref.current === null) return;
-			// 	g.clear();
-
-			// 	g.rect(0, 0, ref.current!.width, ref.current!.height).fill({ color: COLORS.SCREEN });
-			// }}
-		>
+		<pixiContainer ref={ref} width={SCREEN_SIZE} height={SCREEN_SIZE} scale={scale}>
 			{children}
-		</pixiGraphics>
+		</pixiContainer>
 	);
 }
