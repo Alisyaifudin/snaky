@@ -13,15 +13,15 @@ const label = {
 export function Control() {
 	const { game, input } = useGame();
 	return (
-		<div id="control" className="flex flex-col gap-2">
+		<div id="control" className="flex flex-col gap-2 justify-between px-1">
 			<div className="flex justify-between items-center gap-1">
-				<Button onClick={transition[game.status]}>{label[game.status]}</Button>
 				<div className="flex  gap-2 items-center">
-					<div className="p-2 bg-cyan-500">Skor Terbaik {game.highscore}</div>
-					<span>Skor {game.score}</span>
+					<div>Score {game.score}</div>
+					<div className="p-2 bg-red-500 rounded-md text-white">Highscore {game.highscore}</div>
 				</div>
+				<Button onClick={transition[game.status]}>{label[game.status]}</Button>
 			</div>
-			<div className="flex justify-center gap-1 items-center">
+			<div className="flex justify-center gap-2 items-center">
 				<Button
 					onClick={() => {
 						input.push(Key.Left);
@@ -29,12 +29,12 @@ export function Control() {
 							input.press = null;
 						}, 200);
 					}}
-					size="icon"
+					className="w-12 h-12"
 					variant={input.press === Key.Left ? "default" : "secondary"}
 				>
 					<ChevronLeft />
 				</Button>
-				<div className="flex flex-col gap-1">
+				<div className="flex flex-col gap-2">
 					<Button
 						onClick={() => {
 							input.push(Key.Up);
@@ -42,7 +42,7 @@ export function Control() {
 								input.press = null;
 							}, 200);
 						}}
-						className="h-12 w-9"
+						className="h-12 w-12"
 						variant={input.press === Key.Up ? "default" : "secondary"}
 					>
 						<ChevronUp />
@@ -54,7 +54,7 @@ export function Control() {
 								input.press = null;
 							}, 200);
 						}}
-						className="h-12 w-9"
+						className="h-12 w-12"
 						variant={input.press === Key.Down ? "default" : "secondary"}
 					>
 						<ChevronDown />
@@ -67,7 +67,7 @@ export function Control() {
 							input.press = null;
 						}, 200);
 					}}
-					size="icon"
+					className="w-12 h-12"
 					variant={input.press === Key.Right ? "default" : "secondary"}
 				>
 					<ChevronRight />

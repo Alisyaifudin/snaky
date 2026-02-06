@@ -5,7 +5,7 @@ import { Game } from "./pixi/Game";
 
 export default function App() {
 	return (
-		<main className="flex flex-col gap-1">
+		<main className="flex h-screen justify-between flex-col gap-1">
 			<PixiApp>
 				<Screen>
 					<Game />
