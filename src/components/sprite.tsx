@@ -4,9 +4,6 @@ import { Texture } from "pixi.js";
 import { Sprite as SpritePixi, Ticker } from "pixi.js";
 
 interface Props extends PixiReactElementProps<typeof SpritePixi> {
-	// x: number;
-	// y: number;
-	// anchor?: number | { x: number; y: number };
 	load: Promise<Texture>;
 	tick?: (ticker: Ticker, sprite: SpritePixi) => void;
 }

@@ -3,14 +3,14 @@ import { Sprite } from "./components/sprite";
 import { getRandomPosition } from "./utils/random-position";
 import { CELL_NUM, CELL_SIZE, GRID_NUM } from "./constants";
 import { Assets, Texture, Sprite as SpritePixi, TextureSource } from "pixi.js";
-import { Position } from "./types";
+import { Position, VelocityDirection } from "./types";
 import { getRandomDirection } from "./utils/random-dir";
 import { mod } from "./utils/modulo";
 import { useTick } from "@pixi/react";
-import { GameClass } from "./Game";
 import { hashPos } from "./utils/hash-position";
 import { FoodClass } from "./Food";
-import { useRerender } from "./hooks/rerender";
+import { food, game, GameClass, GameSingleton, snake } from "./Game";
+import { InputClass, InputSingleton, Key } from "./Input";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let bodyTexture: Texture<TextureSource<any>>;
@@ -40,17 +40,16 @@ export class SnakeClass {
 	length = 1;
 	occupancy: Set<string> = new Set();
 	refs: SpritePixi[] = [];
-	constructor(private game: GameClass) {
+	game: GameClass;
+	input: InputClass;
+	constructor() {
+		this.game = GameSingleton.getInstance();
+		this.input = InputSingleton.getInstance();
 		this.buffer[0] = getRandomPosition();
 		this.occupancy.add(hashPos(this.buffer[0]));
 	}
-	setBodyRef(i: number, ref: SpritePixi) {
-		const body = this.refs.at(i);
-		if (body === undefined) {
-			this.refs.push(ref);
-		} else {
-			this.refs[i] = ref;
-		}
+	set headRef(ref: SpritePixi) {
+		this.refs.push(ref);
 	}
 	*iterBodies(): Generator<Position> {
 		for (let i = 0; i < this.length; i++) {
@@ -76,7 +75,19 @@ export class SnakeClass {
 			ref.y = body.y * CELL_SIZE;
 		});
 	}
-	move(food: FoodClass, rerender: () => void) {
+	grow() {
+		const sprite = new SpritePixi();
+		loadBodyTexture().then((texture) => (sprite.texture = texture));
+		const body = this.body(mod(this.headIdx - 1, CELL_NUM));
+		sprite.x = body.x * CELL_SIZE;
+		sprite.y = body.y * CELL_SIZE;
+		sprite.width = CELL_SIZE;
+		sprite.height = CELL_SIZE;
+		this.game.addChild(sprite);
+		this.length++;
+		this.refs.push(sprite);
+	}
+	move(food: FoodClass) {
 		if (food.position === null) return;
 		const head = this.buffer[this.headIdx];
 		const newHead = {
@@ -89,52 +100,81 @@ export class SnakeClass {
 		}
 		this.headIdx = mod(this.headIdx + 1, CELL_NUM);
 		this.buffer[this.headIdx] = newHead;
+		this.occupancy.add(hashPos(newHead));
 		if (this.collided(food.position)) {
 			food.spawn(this);
-			this.length++;
-			rerender();
+			this.grow();
 		} else {
+			this.occupancy.delete(hashPos(this.buffer[this.tailIdx]));
 			this.tailIdx = mod(this.tailIdx + 1, CELL_NUM);
-			this.update();
+		}
+		this.update();
+	}
+	changeDir() {
+		const keys = this.input.take().filter((k) => k !== dirToKey(this.dir) && k !== Key.Space);
+		if (keys.length === 0) return;
+		const key = keys[0];
+		const dir = keyToDir(key);
+		if (dir !== null) this.dir = dir;
+		const second = keys.at(1);
+		if (second !== undefined) {
+			this.input.push(second);
 		}
 	}
 }
 
-export function Snake({
-	game,
-	snake,
-	food,
-}: {
-	game: GameClass;
-	snake: SnakeClass;
-	food: FoodClass;
-}) {
-	const rerender = useRerender();
+function dirToKey(dir: VelocityDirection): Key {
+	if (dir.x === 1) return Key.Right;
+	if (dir.x === -1) return Key.Left;
+	if (dir.y === 1) return Key.Down;
+	return Key.Up;
+}
+function keyToDir(key: Key): VelocityDirection | null {
+	switch (key) {
+		case Key.Down:
+			return { x: 0, y: 1 };
+		case Key.Up:
+			return { x: 0, y: -1 };
+		case Key.Left:
+			return { x: -1, y: 0 };
+		case Key.Right:
+			return { x: 1, y: 0 };
+	}
+	return null;
+}
+
+export class SnakeSingleton {
+	private static snake: SnakeClass | null = null;
+	static getInstance() {
+		if (this.snake === null) {
+			this.snake = new SnakeClass();
+		}
+		return this.snake;
+	}
+}
+
+export function Snake() {
 	const dt = useRef(0);
+	const head = snake.body(0);
 	useTick((ticker) => {
-		dt.current += ticker.deltaTime;
 		if (food.position === null || game.status !== "start") return;
+		dt.current += ticker.deltaTime;
 		if (dt.current > game.interval) {
 			dt.current -= game.interval;
-			snake.move(food, rerender);
+			snake.changeDir();
+			snake.move(food);
 		}
 	});
 	return (
-		<>
-			{Array.from({ length: snake.length }).map((_, i) => {
-				const pos = snake.body(i);
-				return (
-					<Sprite
-						key={i}
-						ref={(e) => snake.setBodyRef(i, e!)}
-						width={CELL_SIZE}
-						height={CELL_SIZE}
-						x={pos.x * CELL_SIZE}
-						y={pos.y * CELL_SIZE}
-						load={snake.loadTexture(i)}
-					/>
-				);
-			})}
-		</>
+		<Sprite
+			ref={(e) => {
+				snake.headRef = e!;
+			}}
+			width={CELL_SIZE}
+			height={CELL_SIZE}
+			x={head.x * CELL_SIZE}
+			y={head.y * CELL_SIZE}
+			load={loadHeadTexture()}
+		/>
 	);
 }

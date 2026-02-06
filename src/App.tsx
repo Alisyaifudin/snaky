@@ -1,17 +1,19 @@
 import { PixiApp } from "./pixi-app";
-import { Game } from "./Game";
-import { Screen } from "./screen";
+import { Screen } from "./Screen";
+import { Control } from "./Control";
+import { Snake } from "./Snake";
+import { Food } from "./Food";
 
 export default function App() {
 	return (
-		<main>
+		<main className="flex flex-col gap-1">
 			<PixiApp>
 				<Screen>
-					<Snake game={game} snake={snake} food={food} />
+					<Snake />
 					<Food />
 				</Screen>
-				<Control />
 			</PixiApp>
+			<Control />
 		</main>
 	);
 }
