@@ -1,16 +1,14 @@
-import { PixiApp } from "./pixi-app";
+import { PixiApp } from "./components/pixi-app";
 import { Screen } from "./Screen";
 import { Control } from "./Control";
-import { Snake } from "./Snake";
-import { Food } from "./Food";
+import { Game } from "./pixi/Game";
 
 export default function App() {
 	return (
 		<main className="flex flex-col gap-1">
 			<PixiApp>
 				<Screen>
-					<Snake />
-					<Food />
+					<Game />
 				</Screen>
 			</PixiApp>
 			<Control />

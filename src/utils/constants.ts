@@ -2,6 +2,8 @@ export const CELL_SIZE = 30;
 export const GRID_NUM = 20;
 export const CELL_NUM = GRID_NUM * GRID_NUM;
 export const SCREEN_SIZE = GRID_NUM * CELL_SIZE;
+export const INITIAL_INTERVAL = 20;
+export const MIN_INTERVAL = 7;
 
 export const COLORS = {
 	BORDER: "#8b9add",

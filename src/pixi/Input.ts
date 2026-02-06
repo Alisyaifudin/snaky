@@ -74,3 +74,5 @@ export class InputSingleton {
 		return this.input;
 	}
 }
+
+export const input = InputSingleton.getInstance();

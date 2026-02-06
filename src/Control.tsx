@@ -1,31 +1,23 @@
 import { Button } from "./components/ui/button";
-import { useGame } from "./Game";
+import { useGame } from "./pixi/Game/use-game";
+import { transition } from "./utils/game-transition";
 
 const label = {
-	pause: "Pause",
-	start: "Start",
+	pause: "Start",
+	start: "Pause",
 	over: "Reset",
-} as const;
-
-const transition = {
-	pause: "start",
-	start: "pause",
-	over: "start",
 } as const;
 
 export function Control() {
 	const { game } = useGame();
 	return (
 		<div id="control">
-			<div className="flex items-center gap-1">
-				<Button
-					onClick={() => {
-						game.status = transition[game.status];
-					}}
-				>
-					{label[game.status]}
-				</Button>
-				<span>Skor {game.score}</span>
+			<div className="flex justify-between items-center gap-1">
+				<Button onClick={transition[game.status]}>{label[game.status]}</Button>
+				<div className="flex  gap-2 items-center">
+					<div className="p-2 bg-cyan-500">Skor Terbaik {game.highscore}</div>
+					<span>Skor {game.score}</span>
+				</div>
 			</div>
 		</div>
 	);
