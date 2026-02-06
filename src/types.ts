@@ -4,3 +4,5 @@ export interface Position {
 }
 
 export type VelocityDirection = { x: 1; y: 0 } | { x: -1; y: 0 } | { x: 0; y: 1 } | { x: 0; y: -1 };
+
+export type Listener = () => void;

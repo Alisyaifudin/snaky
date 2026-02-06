@@ -1,9 +1,8 @@
+import { Listener } from "@/types";
 import { INITIAL_INTERVAL, MIN_INTERVAL } from "@/utils/constants";
 import { Container, Sprite } from "pixi.js";
 
 type Status = "start" | "pause" | "over";
-
-type Listener = () => void;
 
 export class GameClass {
 	score = 0;

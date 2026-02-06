@@ -3,8 +3,7 @@ import { game } from "./class";
 import { snake } from "../Snake/class";
 import { food } from "../Food/class";
 import { input } from "../Input";
-
-type Listener = () => void;
+import { Listener } from "@/types";
 
 let snapshot = {
 	game,
@@ -14,6 +13,7 @@ let snapshot = {
 };
 
 const listeners: Set<Listener> = new Set();
+
 const store = {
 	getSnapshot() {
 		return snapshot;
@@ -33,6 +33,7 @@ const store = {
 };
 
 game.addListener(store.notify);
+input.addListener(store.notify);
 
 export function useGame() {
 	const s = useSyncExternalStore(store.subscribe, store.getSnapshot);

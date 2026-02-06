@@ -1,3 +1,5 @@
+import { Listener } from "@/types";
+
 export enum Key {
 	Up,
 	Down,
@@ -8,12 +10,38 @@ export enum Key {
 
 export class InputClass {
 	private register: Key[] = [];
-	private boundListener: ((e: KeyboardEvent) => void) | null = null;
+	private keydownListener: ((e: KeyboardEvent) => void) | null = null;
+	private keyupListener: ((e: KeyboardEvent) => void) | null = null;
 
-	addEventListener() {
-		if (this.boundListener) return; // Prevent duplicates
+	private listeners: Listener[] = [];
+	private notify = () => {
+		this.listeners.forEach((listener) => listener());
+	};
+	clearListener() {
+		this.listeners = [];
+	}
+	addListener(listener: Listener) {
+		this.listeners.push(listener);
+	}
+	private _press: null | Key = null;
+	get press() {
+		return this._press;
+	}
+	set press(p: Key | null) {
+		this._press = p;
+		this.notify();
+	}
+	private addKeyup() {
+		if (this.keyupListener) return; // Prevent duplicates
+		this.keyupListener = () => {
+			this.press = null;
+		};
+		window.addEventListener("keyup", this.keyupListener);
+	}
+	private addKeydown() {
+		if (this.keydownListener) return; // Prevent duplicates
 
-		this.boundListener = (e: KeyboardEvent) => {
+		this.keydownListener = (e: KeyboardEvent) => {
 			let k: Key | undefined;
 			switch (e.key) {
 				case "ArrowUp":
@@ -37,19 +65,29 @@ export class InputClass {
 			}
 		};
 
-		window.addEventListener("keydown", this.boundListener);
+		window.addEventListener("keydown", this.keydownListener);
+	}
+	addEventListener() {
+		this.addKeydown();
+		this.addKeyup();
 	}
 
 	removeEventListener() {
-		if (this.boundListener) {
-			window.removeEventListener("keydown", this.boundListener);
-			this.boundListener = null;
+		if (this.keydownListener) {
+			window.removeEventListener("keydown", this.keydownListener);
+			this.keydownListener = null;
+		}
+		if (this.keyupListener) {
+			window.removeEventListener("keydown", this.keyupListener);
+			this.keyupListener = null;
 		}
 	}
 
 	push(key: Key) {
 		if (this.register.includes(key)) return;
+		this.press = key;
 		this.register.push(key);
+		this.notify();
 	}
 
 	seek(): Key[] {
@@ -59,9 +97,6 @@ export class InputClass {
 		const keys = this.register.slice();
 		this.register = [];
 		return keys;
-	}
-	filter(key: Key) {
-		this.register = this.register.filter((k) => k !== key);
 	}
 }
 
